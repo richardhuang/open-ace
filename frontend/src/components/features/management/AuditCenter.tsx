@@ -654,6 +654,11 @@ export const AuditCenter: React.FC = () => {
                         ? 'text-warning'
                         : 'text-danger'
                   )}
+                  role="progressbar"
+                  aria-valuenow={securityScore.score}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`${t('securityScore', language)}: ${securityScore.score}, ${t('grade', language) || 'Grade'}: ${securityScore.grade}`}
                 >
                   <div
                     className="display-1 fw-bold"
@@ -675,41 +680,52 @@ export const AuditCenter: React.FC = () => {
                 </div>
               </div>
               <div className="col-md-8">
-                <h6>{t('categoryScores', language) ?? 'Severity Breakdown'}</h6>
+                <h6>{t('categoryScores', language)}</h6>
                 {[
                   {
-                    label: 'High Severity',
+                    label: t('highSeverity', language),
                     count: securityScore.high_severity_count,
                     max: 10,
                     variant: 'danger',
                   },
                   {
-                    label: 'Medium Severity',
+                    label: t('mediumSeverity', language),
                     count: securityScore.medium_severity_count,
                     max: 10,
                     variant: 'warning',
                   },
                   {
-                    label: 'Low Severity',
+                    label: t('lowSeverity', language),
                     count: securityScore.low_severity_count,
                     max: 10,
                     variant: 'info',
                   },
                 ].map((item) => {
                   const scorePercent = Math.max(0, 100 - (item.count / item.max) * 100);
+                  const textVariantMap: Record<string, string> = {
+                    danger: 'text-danger',
+                    warning: 'text-warning',
+                    info: 'text-info',
+                    success: 'text-success',
+                  };
+                  const bgVariantMap: Record<string, string> = {
+                    success: 'bg-success',
+                    warning: 'bg-warning',
+                    danger: 'bg-danger',
+                  };
                   return (
                     <div key={item.label} className="mb-2">
                       <div className="d-flex justify-content-between">
                         <span>{item.label}</span>
-                        <span className={item.count > 0 ? `text-${item.variant}` : 'text-success'}>
-                          {item.count} {t('totalAnomalies', language) ?? 'anomalies'}
+                        <span className={textVariantMap[item.count > 0 ? item.variant : 'success']}>
+                          {item.count} {t('totalAnomalies', language)}
                         </span>
                       </div>
                       <div className="progress" style={{ height: '8px' }}>
                         <div
                           className={cn(
                             'progress-bar',
-                            `bg-${scorePercent >= 80 ? 'success' : scorePercent >= 60 ? 'warning' : 'danger'}`
+                            bgVariantMap[scorePercent >= 80 ? 'success' : scorePercent >= 60 ? 'warning' : 'danger']
                           )}
                           style={{ width: `${scorePercent}%` }}
                         />
@@ -719,7 +735,7 @@ export const AuditCenter: React.FC = () => {
                 })}
                 <div className="mt-2">
                   <small className="text-muted">
-                    {t('totalAnomalies', language) ?? 'Total'}: {securityScore.anomaly_count}
+                    {t('totalAnomalies', language)}: {securityScore.anomaly_count}
                   </small>
                 </div>
               </div>
@@ -970,21 +986,13 @@ export const AuditCenter: React.FC = () => {
           <div className="row g-3 mb-3">
             <div className="col-md-4">
               <label className="form-label">{t('selectUser', language)}</label>
-              <select
-                className="form-select"
-                value={selectedUserId ?? ''}
-                onChange={(e) =>
-                  setSelectedUserId(e.target.value ? parseInt(e.target.value) : null)
-                }
+              <Select
+                options={users?.map((u) => ({ value: String(u.id), label: u.username }))}
+                value={selectedUserId != null ? String(selectedUserId) : ''}
+                onChange={(val) => setSelectedUserId(val ? parseInt(val) : null)}
+                placeholder={`-- ${t('selectUser', language)} --`}
                 disabled={usersLoading}
-              >
-                <option value="">-- {t('selectUser', language)} --</option>
-                {users?.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.username}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           </div>
 
@@ -1151,9 +1159,14 @@ export const AuditCenter: React.FC = () => {
       </div>
 
       {/* Tab Navigation */}
-      <ul className="nav nav-tabs mb-3">
-        <li className="nav-item">
+      <ul className="nav nav-tabs mb-3" role="tablist">
+        <li className="nav-item" role="presentation">
           <button
+            role="tab"
+            id="log-tab"
+            aria-selected={activeTab === 'log'}
+            aria-controls="log-panel"
+            tabIndex={activeTab === 'log' ? 0 : -1}
             className={cn('nav-link', activeTab === 'log' && 'active')}
             onClick={() => setActiveTab('log')}
           >
@@ -1161,8 +1174,13 @@ export const AuditCenter: React.FC = () => {
             {t('auditLog', language)}
           </button>
         </li>
-        <li className="nav-item">
+        <li className="nav-item" role="presentation">
           <button
+            role="tab"
+            id="analysis-tab"
+            aria-selected={activeTab === 'analysis'}
+            aria-controls="analysis-panel"
+            tabIndex={activeTab === 'analysis' ? 0 : -1}
             className={cn('nav-link', activeTab === 'analysis' && 'active')}
             onClick={() => setActiveTab('analysis')}
           >
@@ -1173,7 +1191,22 @@ export const AuditCenter: React.FC = () => {
       </ul>
 
       {/* Tab Content */}
-      {activeTab === 'log' ? renderLogTab() : renderAnalysisTab()}
+      <div
+        id="log-panel"
+        role="tabpanel"
+        aria-labelledby="log-tab"
+        hidden={activeTab !== 'log'}
+      >
+        {renderLogTab()}
+      </div>
+      <div
+        id="analysis-panel"
+        role="tabpanel"
+        aria-labelledby="analysis-tab"
+        hidden={activeTab !== 'analysis'}
+      >
+        {renderAnalysisTab()}
+      </div>
     </div>
   );
 };
