@@ -725,7 +725,13 @@ export const AuditCenter: React.FC = () => {
                         <div
                           className={cn(
                             'progress-bar',
-                            bgVariantMap[scorePercent >= 80 ? 'success' : scorePercent >= 60 ? 'warning' : 'danger']
+                            bgVariantMap[
+                              scorePercent >= 80
+                                ? 'success'
+                                : scorePercent >= 60
+                                  ? 'warning'
+                                  : 'danger'
+                            ]
                           )}
                           style={{ width: `${scorePercent}%` }}
                         />
@@ -988,7 +994,7 @@ export const AuditCenter: React.FC = () => {
               <label className="form-label">{t('selectUser', language)}</label>
               <Select
                 options={users?.map((u) => ({ value: String(u.id), label: u.username }))}
-                value={selectedUserId != null ? String(selectedUserId) : ''}
+                value={selectedUserId !== null ? String(selectedUserId) : ''}
                 onChange={(val) => setSelectedUserId(val ? parseInt(val) : null)}
                 placeholder={`-- ${t('selectUser', language)} --`}
                 disabled={usersLoading}
@@ -1191,12 +1197,7 @@ export const AuditCenter: React.FC = () => {
       </ul>
 
       {/* Tab Content */}
-      <div
-        id="log-panel"
-        role="tabpanel"
-        aria-labelledby="log-tab"
-        hidden={activeTab !== 'log'}
-      >
+      <div id="log-panel" role="tabpanel" aria-labelledby="log-tab" hidden={activeTab !== 'log'}>
         {renderLogTab()}
       </div>
       <div
